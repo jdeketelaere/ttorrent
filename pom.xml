@@ -17,7 +17,7 @@
 	<url>http://mpetazzoni.github.io/ttorrent/</url>
 	<groupId>com.turn</groupId>
 	<artifactId>ttorrent</artifactId>
-	<version>1.5-SNAPSHOT</version>
+	<version>1.5.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
     <modules>
