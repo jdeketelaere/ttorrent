@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.turn.ttorrent.bcodec.InvalidBEncodingException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -336,53 +337,55 @@ public class Torrent {
 			size += file.size;
 		}
 		this.size = size;
-
-		logger.info("{}-file torrent information:",
-			this.isMultifile() ? "Multi" : "Single");
-		logger.info("  Torrent name: {}", this.name);
-		logger.info("  Private.....: {}", this.privateFlag);
-		logger.info("  Announced at:" + (this.trackers.size() == 0 ? " Seems to be trackerless" : ""));
-		for (int i=0; i < this.trackers.size(); i++) {
-			List<URI> tier = this.trackers.get(i);
-			for (int j=0; j < tier.size(); j++) {
-				logger.info("    {}{}",
-					(j == 0 ? String.format("%2d. ", i+1) : "    "),
-					tier.get(j));
-			}
-		}
-
-		if (this.creationDate != null) {
-			logger.info("  Created on..: {}", this.creationDate);
-		}
-		if (this.comment != null) {
-			logger.info("  Comment.....: {}", this.comment);
-		}
-		if (this.createdBy != null) {
-			logger.info("  Created by..: {}", this.createdBy);
-		}
-
-		if (this.isMultifile()) {
-			logger.info("  Found {} file(s) in multi-file torrent structure.",
-				this.files.size());
-			int i = 0;
-			for (TorrentFile file : this.files) {
-				logger.debug("    {}. {} ({} byte(s))",
-					new Object[] {
-						String.format("%2d", ++i),
-						file.file.getPath(),
-						String.format("%,d", file.size)
-					});
-			}
-		}
-
-		logger.info("  Pieces......: {} piece(s) ({} byte(s)/piece)",
-			(this.size / this.decoded_info.get("piece length").getInt()) + 1,
-			this.decoded_info.get("piece length").getInt());
-		logger.info("  Total size..: {} byte(s)",
-			String.format("%,d", this.size));
 	}
 
-	/**
+    public void logInfo() throws InvalidBEncodingException {
+        logger.info("{}-file torrent information:",
+            this.isMultifile() ? "Multi" : "Single");
+        logger.info("  Torrent name: {}", this.name);
+        logger.info("  Private.....: {}", this.privateFlag);
+        logger.info("  Announced at:" + (this.trackers.size() == 0 ? " Seems to be trackerless" : ""));
+        for (int i=0; i < this.trackers.size(); i++) {
+            List<URI> tier = this.trackers.get(i);
+            for (int j=0; j < tier.size(); j++) {
+                logger.info("    {}{}",
+                    (j == 0 ? String.format("%2d. ", i+1) : "    "),
+                    tier.get(j));
+            }
+        }
+
+        if (this.creationDate != null) {
+            logger.info("  Created on..: {}", this.creationDate);
+        }
+        if (this.comment != null) {
+            logger.info("  Comment.....: {}", this.comment);
+        }
+        if (this.createdBy != null) {
+            logger.info("  Created by..: {}", this.createdBy);
+        }
+
+        if (this.isMultifile()) {
+            logger.info("  Found {} file(s) in multi-file torrent structure.",
+                this.files.size());
+            int i = 0;
+            for (TorrentFile file : this.files) {
+                logger.debug("    {}. {} ({} byte(s))",
+                    new Object[] {
+                        String.format("%2d", ++i),
+                        file.file.getPath(),
+                        String.format("%,d", file.size)
+                    });
+            }
+        }
+
+        logger.info("  Pieces......: {} piece(s) ({} byte(s)/piece)",
+            (this.size / this.decoded_info.get("piece length").getInt()) + 1,
+            this.decoded_info.get("piece length").getInt());
+        logger.info("  Total size..: {} byte(s)",
+            String.format("%,d", this.size));
+    }
+
+    /**
 	 * Get this torrent's name.
 	 *
 	 * <p>
