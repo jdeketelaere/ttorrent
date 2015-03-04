@@ -103,6 +103,7 @@ public class TrackerService implements Container {
 	 * @param response The response object.
 	 */
 	public void handle(Request request, Response response) {
+        logger.info("Tracker request from client at " + request.getClientAddress());
 		// Reject non-announce requests
 		if (!Tracker.ANNOUNCE_URL.equals(request.getPath().toString())) {
 			response.setCode(404);
