@@ -188,12 +188,12 @@ public class TrackerService implements Container {
 		// previous 'started' announce request should have been made by the
 		// client that would have had us register that peer on the torrent this
 		// request refers to.
-		if (event != null && torrent.getPeer(peerId) == null &&
-			!AnnounceRequestMessage.RequestEvent.STARTED.equals(event)) {
-			this.serveError(response, body, Status.BAD_REQUEST,
-				ErrorMessage.FailureReason.INVALID_EVENT);
-			return;
-		}
+//		if (event != null && torrent.getPeer(peerId) == null &&
+//			!AnnounceRequestMessage.RequestEvent.STARTED.equals(event)) {
+//			this.serveError(response, body, Status.BAD_REQUEST,
+//				ErrorMessage.FailureReason.INVALID_EVENT);
+//			return;
+//		}
 
 		// Update the torrent according to the announce event
 		TrackedPeer peer = null;
