@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
@@ -65,7 +66,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Torrent {
 
-	private static final Logger logger =
+    private static final Logger logger =
 		LoggerFactory.getLogger(Torrent.class);
 
 	/** Torrent file piece length (in bytes), we use 512 kB. */
@@ -75,8 +76,9 @@ public class Torrent {
 
 	/** The query parameters encoding when parsing byte strings. */
 	public static final String BYTE_ENCODING = "ISO-8859-1";
+    public static final String MAGNET_LINK_TEMPLATE = "magnet:?xt=urn:btih:%s&dn=%s&tr=%s";
 
-	/**
+    /**
 	 *
 	 * @author dgiffin
 	 * @author mpetazzoni
@@ -614,7 +616,7 @@ public class Torrent {
 	 * also used as the torrent's name.
 	 * @param files The files to add into this torrent.
 	 * @param announce The announce URI that will be used for this torrent.
-	 * @param announceList The announce URIs organized as tiers that will 
+	 * @param announceList The announce URIs organized as tiers that will
 	 * be used for this torrent
 	 * @param createdBy The creator's name, or any string identifying the
 	 * torrent's creator.
@@ -647,7 +649,7 @@ public class Torrent {
 			}
 			torrent.put("announce-list", new BEValue(tiers));
 		}
-		
+
 		torrent.put("creation date", new BEValue(new Date().getTime() / 1000));
 		torrent.put("created by", new BEValue(createdBy));
 
@@ -837,4 +839,15 @@ public class Torrent {
 			throw new IOException("Error while hashing the torrent data!", ee);
 		}
 	}
+
+    public String getMagnetLink() {
+        try {
+            String encodedName = URLEncoder.encode(name, "UTF-8");
+            String encodedAnnouncUrl = URLEncoder.encode(getAnnounceList().get(0).get(0).toString(), "UTF-8");
+            return String.format(MAGNET_LINK_TEMPLATE, hex_info_hash, encodedName, encodedAnnouncUrl);
+        } catch (UnsupportedEncodingException e) {
+            return null;
+        }
+    }
+
 }
