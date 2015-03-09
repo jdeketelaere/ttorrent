@@ -22,6 +22,7 @@ import com.turn.ttorrent.bcodec.InvalidBEncodingException;
 import com.turn.ttorrent.common.Peer;
 import com.turn.ttorrent.common.Torrent;
 import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceResponseMessage;
+import com.turn.ttorrent.util.ToStringBuilder;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -207,4 +208,14 @@ public class HTTPAnnounceResponseMessage extends HTTPTrackerMessage
 			BEncoder.bencode(response),
 			interval, complete, incomplete, peers);
 	}
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(getClass())
+                .newLine("TYPE", getType())
+                .newLine("INTERVAL", getInterval())
+                .newLine("INCOMPLETE", getIncomplete())
+                .newLine("PEERS", getPeers())
+                .buildString();
+    }
 }

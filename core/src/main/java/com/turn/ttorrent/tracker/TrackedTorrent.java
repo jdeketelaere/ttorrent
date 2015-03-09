@@ -225,7 +225,7 @@ public class TrackedTorrent extends Torrent {
 			peer = this.getPeer(hexPeerId);
 			state = TrackedPeer.PeerState.STARTED;
 		} else {
-			throw new IllegalArgumentException("Unexpected announce event type!");
+			throw new IllegalArgumentException("Unexpected announce event type: " + event);
 		}
 
 		peer.update(state, uploaded, downloaded, left);
@@ -241,6 +241,7 @@ public class TrackedTorrent extends Torrent {
 	 * @return A list of peers we can include in an announce response.
 	 */
 	public List<Peer> getSomePeers(TrackedPeer peer) {
+        logger.debug("Selecting peers from {} candidates", this.peers.size());
 		List<Peer> peers = new LinkedList<Peer>();
 
 		// Extract answerPeers random peers
@@ -278,6 +279,8 @@ public class TrackedTorrent extends Torrent {
 
 			peers.add(candidate);
 		}
+
+        logger.debug("Selected {} peers from {} candidates", peers.size(), this.peers.size());
 
 		return peers;
 	}

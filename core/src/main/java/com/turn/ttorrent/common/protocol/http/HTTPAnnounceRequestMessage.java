@@ -22,6 +22,7 @@ import com.turn.ttorrent.bcodec.InvalidBEncodingException;
 import com.turn.ttorrent.common.Peer;
 import com.turn.ttorrent.common.Torrent;
 import com.turn.ttorrent.common.protocol.TrackerMessage.AnnounceRequestMessage;
+import com.turn.ttorrent.util.ToStringBuilder;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -152,12 +153,12 @@ public class HTTPAnnounceRequestMessage extends HTTPTrackerMessage
 		url.append(base.contains("?") ? "&" : "?")
 			.append("info_hash=")
 			.append(URLEncoder.encode(
-				new String(this.getInfoHash(), Torrent.BYTE_ENCODING),
-				Torrent.BYTE_ENCODING))
+                    new String(this.getInfoHash(), Torrent.BYTE_ENCODING),
+                    Torrent.BYTE_ENCODING))
 			.append("&peer_id=")
 			.append(URLEncoder.encode(
-				new String(this.getPeerId(), Torrent.BYTE_ENCODING),
-				Torrent.BYTE_ENCODING))
+                    new String(this.getPeerId(), Torrent.BYTE_ENCODING),
+                    Torrent.BYTE_ENCODING))
 			.append("&port=").append(this.getPort())
 			.append("&uploaded=").append(this.getUploaded())
 			.append("&downloaded=").append(this.getDownloaded())
@@ -297,4 +298,16 @@ public class HTTPAnnounceRequestMessage extends HTTPTrackerMessage
 			infoHash, new Peer(ip, port, ByteBuffer.wrap(peerId)),
 			uploaded, downloaded, left, compact, noPeerId, event, numWant);
 	}
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(getClass())
+                .newLine("TYPE", getType())
+                .newLine("EVENT", getEvent())
+                .newLine("HASH", getHexInfoHash())
+                .newLine("PEER", getHexPeerId())
+                .newLine("STATS", "D:" + getDownloaded() + " / U:" + getUploaded() + " / L:" + getLeft())
+                .newLine("WANT", getNumWant())
+                .buildString();
+    }
 }

@@ -103,7 +103,12 @@ public class TrackerService implements Container {
 	 * @param response The response object.
 	 */
 	public void handle(Request request, Response response) {
-        logger.info("Tracker request from client at " + request.getClientAddress());
+        TrackerRequest trackerRequest = new TrackerRequest(request);
+        if(logger.isDebugEnabled()) {
+            logger.debug(trackerRequest + " Incoming Tracker Request");
+            logger.debug(trackerRequest + "\nRAW REQUEST : " + request);
+        }
+
 		// Reject non-announce requests
 		if (!Tracker.ANNOUNCE_URL.equals(request.getPath().toString())) {
 			response.setCode(404);
@@ -114,7 +119,7 @@ public class TrackerService implements Container {
 		OutputStream body = null;
 		try {
 			body = response.getOutputStream();
-			this.process(request, response, body);
+			this.process(trackerRequest, response, body);
 			body.flush();
 		} catch (IOException ioe) {
 			logger.warn("Error while writing response: {}!", ioe.getMessage());
@@ -154,6 +159,7 @@ public class TrackerService implements Container {
 		try {
 			announceRequest = this.parseQuery(request);
 		} catch (MessageValidationException mve) {
+            logger.error(request + " - Invalid request", mve);
 			this.serveError(response, body, Status.BAD_REQUEST,
 				mve.getMessage());
 			return;
@@ -163,8 +169,7 @@ public class TrackerService implements Container {
 		TrackedTorrent torrent = this.torrents.get(
 			announceRequest.getHexInfoHash());
 		if (torrent == null) {
-			logger.warn("Requested torrent hash was: {}",
-				announceRequest.getHexInfoHash());
+            logger.warn(request + " - unknown torrent requested with hash: {}", announceRequest.getHexInfoHash());
 			this.serveError(response, body, Status.BAD_REQUEST,
 				ErrorMessage.FailureReason.UNKNOWN_TORRENT);
 			return;
@@ -172,6 +177,7 @@ public class TrackerService implements Container {
 
 		AnnounceRequestMessage.RequestEvent event = announceRequest.getEvent();
 		String peerId = announceRequest.getHexPeerId();
+        logger.debug(request + " - EVENT=" + event + " peer=" + peerId);
 
 		// When no event is specified, it's a periodic update while the client
 		// is operating. If we don't have a peer for this announce, it means
@@ -188,12 +194,13 @@ public class TrackerService implements Container {
 		// previous 'started' announce request should have been made by the
 		// client that would have had us register that peer on the torrent this
 		// request refers to.
-//		if (event != null && torrent.getPeer(peerId) == null &&
-//			!AnnounceRequestMessage.RequestEvent.STARTED.equals(event)) {
-//			this.serveError(response, body, Status.BAD_REQUEST,
-//				ErrorMessage.FailureReason.INVALID_EVENT);
-//			return;
-//		}
+		if (event != null && torrent.getPeer(peerId) == null &&
+			!AnnounceRequestMessage.RequestEvent.STARTED.equals(event)) {
+            logger.info(request + " - Peer not previously registered");
+			this.serveError(response, body, Status.BAD_REQUEST,
+				ErrorMessage.FailureReason.INVALID_EVENT);
+			return;
+		}
 
 		// Update the torrent according to the announce event
 		TrackedPeer peer = null;
@@ -222,9 +229,11 @@ public class TrackerService implements Container {
 				torrent.seeders(),
 				torrent.leechers(),
 				torrent.getSomePeers(peer));
-			WritableByteChannel channel = Channels.newChannel(body);
+            logger.debug(request + " - created response " + announceResponse);
+            WritableByteChannel channel = Channels.newChannel(body);
 			channel.write(announceResponse.getData());
 		} catch (Exception e) {
+            logger.error(request + " - Exception while creating response ", e);
 			this.serveError(response, body, Status.INTERNAL_SERVER_ERROR,
 				e.getMessage());
 		}
@@ -254,6 +263,7 @@ public class TrackerService implements Container {
 	 */
 	private HTTPAnnounceRequestMessage parseQuery(Request request)
 		throws IOException, MessageValidationException {
+        logger.info(request + " - parsing");
 		Map<String, BEValue> params = new HashMap<String, BEValue>();
 
 		try {
@@ -267,6 +277,7 @@ public class TrackerService implements Container {
 				}
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
+            logger.error(request + " - ERROR while parsing", e);
 			params.clear();
 		}
 
@@ -279,7 +290,9 @@ public class TrackerService implements Container {
 		}
 
 
-		return HTTPAnnounceRequestMessage.parse(BEncoder.bencode(params));
+        HTTPAnnounceRequestMessage parsedMessage = HTTPAnnounceRequestMessage.parse(BEncoder.bencode(params));
+        logger.info(request + " - parsed to Announce Request: " + parsedMessage);
+        return parsedMessage;
 	}
 
 	private void recordParam(Map<String, BEValue> params, String key,

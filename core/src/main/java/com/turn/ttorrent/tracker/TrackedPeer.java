@@ -51,7 +51,7 @@ public class TrackedPeer extends Peer {
 	private static final Logger logger =
 		LoggerFactory.getLogger(TrackedPeer.class);
 
-	private static final int FRESH_TIME_SECONDS = 30;
+	private static final int FRESH_TIME_SECONDS = 300;
 
 	private long uploaded;
 	private long downloaded;
@@ -209,4 +209,21 @@ public class TrackedPeer extends Peer {
 		peer.put("port", new BEValue(this.getPort()));
 		return new BEValue(peer);
 	}
+
+    @Override
+    public String toString() {
+        StringBuilder base = new StringBuilder(super.toString());
+        base.append(" [")
+                .append(state)
+                .append(" ")
+                .append(lastAnnounce)
+                .append(" ")
+                .append(uploaded)
+                .append("/")
+                .append(downloaded)
+                .append("/")
+                .append(left)
+                .append(" ]");
+        return base.toString();
+    }
 }
